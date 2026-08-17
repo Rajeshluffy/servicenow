@@ -1,0 +1,27 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+<!--
+    ServiceNow project test suite.
+
+    Run all API tests:
+        mvn test
+
+    Run with a different suite file:
+        mvn test -Dtestng.suite.file=testng-smoke.xml
+
+    Credentials are read from environment variables (see ConfigurationManager):
+        SERVICE_NOW_USERNAME
+        SERVICE_NOW_PASSWORD
+        SERVICE_NOW_CLIENT_ID
+        SERVICE_NOW_CLIENT_SECRET
+-->
+<suite name="ServiceNow Test Suite" verbose="1" parallel="none">
+
+    <!-- ── ServiceNow API tests via Cucumber ──────────────────────────────── -->
+    <test name="ServiceNow API Tests">
+        <classes>
+            <class name="runner.TestNGRunner"/>
+        </classes>
+    </test>
+
+</suite>

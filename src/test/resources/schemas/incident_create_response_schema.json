@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "description": "Schema for ServiceNow POST /incident 201 response",
+  "type": "object",
+  "required": ["result"],
+  "properties": {
+    "result": {
+      "type": "object",
+      "required": ["sys_id", "number"],
+      "properties": {
+        "sys_id": {
+          "type": "string",
+          "minLength": 32,
+          "maxLength": 32,
+          "description": "Unique record identifier — always 32 hex characters"
+        },
+        "number": {
+          "type": "string",
+          "pattern": "^INC[0-9]+$",
+          "description": "Incident number in INCxxxxxxx format"
+        },
+        "short_description": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "urgency": {
+          "type": "string"
+        },
+        "active": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

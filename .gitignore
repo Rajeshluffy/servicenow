@@ -1,0 +1,10 @@
+/target/
+/.apt_generated/
+/.apt_generated_tests/
+/logs/
+/reports/
+/test-output/
+
+# Contains live ServiceNow credentials — never commit. See
+# service.now.app.config.properties.example for the template.
+src/main/resources/service.now.app.config.properties

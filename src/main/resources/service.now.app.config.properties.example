@@ -1,0 +1,20 @@
+# ServiceNow DEV environment config — template.
+# Copy this file to service.now.app.config.properties and fill in real
+# credentials, or set the equivalent SERVICE_NOW_* env vars (which take
+# precedence — see ConfigurationManager). service.now.app.config.properties
+# itself is git-ignored and must never be committed.
+#
+# base.uri/base.path/oauth.base.path/grant.type are NOT secrets and have no
+# env var override — Docker/CI builds copy this .example file to the real
+# filename verbatim to pick these up, then rely on env vars to fill in the
+# 4 credential fields below at container runtime.
+
+service.now.base.uri=https://dev265263.service-now.com/
+service.now.base.path=/api/now/table/
+service.now.oauth.base.path=/oauth_token.do
+service.now.grant.type=password
+service.now.client.id=<oauth-client-id>
+service.now.client.secret=<oauth-client-secret>
+
+service.now.username=<username>
+service.now.password=<password>

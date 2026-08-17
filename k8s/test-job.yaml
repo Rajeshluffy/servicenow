@@ -1,0 +1,58 @@
+# One-shot Job — runs the ServiceNow API suite to completion and exits.
+#
+# Prerequisites before `kubectl apply -f k8s/`:
+#   1. Build the image from ../Dockerfile (see its header comment) and load
+#      it into the cluster (the Jenkinsfile does this via `docker save` +
+#      `docker load` into the Minikube node — no external registry needed).
+#   2. Apply namespace.yaml first.
+#   3. Create the servicenow-credentials Secret described in
+#      servicenow-secret.example.yaml's header comment.
+#
+# image: is rewritten by the Jenkinsfile (sed) from the "latest" placeholder
+# below to servicenow-test:${BUILD_ID} before every apply.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: servicenow-test-job
+  namespace: servicenow
+  labels:
+    app: servicenow-test
+spec:
+  # Single attempt, no retries — a flaky API test retrying itself via k8s Job
+  # semantics would just mask real failures; retries belong at the
+  # TestNG/RetryEngine layer (already built into autoFrameX), not here.
+  backoffLimit: 0
+  # Auto-delete the Job (and its Pod) 1 hour after it finishes, so results
+  # don't pile up — extract reports before this fires.
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata:
+      labels:
+        app: servicenow-test
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: servicenow-test
+          image: servicenow-test:latest   # REPLACED by Jenkinsfile via sed
+          imagePullPolicy: Never
+          envFrom:
+            - secretRef:
+                name: servicenow-credentials
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+          volumeMounts:
+            - name: test-reports
+              mountPath: /app/serivcenow/target/surefire-reports
+      volumes:
+        # hostPath on the Minikube node — the Jenkinsfile pulls this out via
+        # `docker exec minikube tar -c -C /tmp surefire-reports`, so it must
+        # stay in sync with that command's path.
+        - name: test-reports
+          hostPath:
+            path: /tmp/surefire-reports
+            type: DirectoryOrCreate

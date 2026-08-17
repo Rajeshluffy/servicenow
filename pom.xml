@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.serivcenow</groupId>
+    <artifactId>serivcenow</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>serivcenow</name>
+    <description>ServiceNow project — API tests built on the autoFrameX core framework</description>
+
+    <properties>
+        <java.version>16</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <testng.suite.file>testng.xml</testng.suite.file>
+        <cucumber.version>7.21.1</cucumber.version>
+    </properties>
+
+    <dependencies>
+
+        <!--
+            autoFrameX is now an 8-module Maven reactor (TD-20) — the old single
+            "autoFrameX:autoFrameX" artifact no longer exists. This project only
+            uses com.api.* (ApiClient/ResponseAPI, RestAssuredBase, RequestSpecBuilder,
+            ...), all of which now live in autoframex-api, which pulls in
+            autoframex-core transitively (ConfigManager, ExtentReports wrapper, etc).
+            It does NOT use Selenium/TestNG-lifecycle classes, so autoframex-selenium
+            is not needed here.
+
+            Before building this project run once in the autoFrameX directory:
+                mvn install -DskipTests -Djacoco.skip=true
+        -->
+        <dependency>
+            <groupId>autoFrameX</groupId>
+            <artifactId>autoframex-api</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
+        <!--
+            cucumber-java/cucumber-testng (TestNGRunner extends the raw
+            AbstractTestNGCucumberTests, not autoFrameX's own CucumberProjectBase)
+            used to come transitively from the old single autoFrameX artifact.
+            autoframex-cucumber is the module that now owns Cucumber support and
+            declares both as its own dependencies — added here for the same reason.
+        -->
+        <dependency>
+            <groupId>autoFrameX</groupId>
+            <artifactId>autoframex-cucumber</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
+        <!--
+            Cucumber PicoContainer — explicit dependency even though autoFrameX
+            provides it transitively.  Explicit declaration pins the version and
+            avoids unexpected scope changes when autoFrameX changes its own deps.
+            Enables constructor injection in step definitions so shared scenario
+            state flows through ScenarioContext instead of static fields.
+        -->
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-picocontainer</artifactId>
+            <version>${cucumber.version}</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+            </plugin>
+
+            <!--
+                Surefire runs TestNG which in turn runs the Cucumber runner.
+                Override the suite file at runtime: -Dtestng.suite.file=testng-smoke.xml
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M7</version>
+                <configuration>
+                    <suiteXmlFiles>
+                        <suiteXmlFile>${testng.suite.file}</suiteXmlFile>
+                    </suiteXmlFiles>
+                    <systemPropertyVariables>
+                        <testng.suite.file>${testng.suite.file}</testng.suite.file>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>
