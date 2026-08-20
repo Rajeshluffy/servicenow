@@ -57,7 +57,11 @@ pipeline {
     }
 
     environment {
-        KUBECTL = 'docker exec minikube /var/lib/minikube/binaries/v1.35.1/kubectl --kubeconfig=/etc/kubernetes/admin.conf'
+        // -i is required: stages below pipe YAML into "${KUBECTL} apply -f -"
+        // (stdin), and `docker exec` does not attach stdin to the container
+        // process unless -i is passed — without it, kubectl silently receives
+        // nothing and fails with "error: no objects passed to apply".
+        KUBECTL = 'docker exec -i minikube /var/lib/minikube/binaries/v1.35.1/kubectl --kubeconfig=/etc/kubernetes/admin.conf'
     }
 
     stages {
@@ -133,8 +137,19 @@ pipeline {
         stage('Collect Test Results') {
             steps {
                 sh '''
-                    # Wait for the test job to finish (pass or fail)
-                    ${KUBECTL} wait --for=condition=complete job/servicenow-test-job -n servicenow --timeout=300s || true
+                    # Poll instead of a blind 'kubectl wait --for=condition=complete': that
+                    # condition never fires for a FAILED job, so it burns the entire timeout
+                    # doing nothing even if the pod died in the first few seconds. Checking
+                    # succeeded/failed counts directly exits the moment the job is done.
+                    for i in $(seq 1 30); do
+                        SUCCEEDED=$(${KUBECTL} get job/servicenow-test-job -n servicenow -o jsonpath='{.status.succeeded}' 2>/dev/null)
+                        FAILED=$(${KUBECTL} get job/servicenow-test-job -n servicenow -o jsonpath='{.status.failed}' 2>/dev/null)
+                        if [ "$SUCCEEDED" = "1" ] || [ "$FAILED" = "1" ]; then
+                            echo "Job finished (succeeded=$SUCCEEDED failed=$FAILED) after ${i}0s"
+                            break
+                        fi
+                        sleep 10
+                    done
 
                     mkdir -p serivcenow/target
 
