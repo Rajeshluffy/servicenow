@@ -40,6 +40,18 @@
         </dependency>
 
         <!--
+            com.framework.performance — API response-time measurement and
+            concurrent load testing (ApiPerformanceUtils, PerformanceTestBase).
+            No JMeter/Gatling; uses java.util.concurrent + the RestAssured stack
+            already pulled in by autoframex-api above.
+        -->
+        <dependency>
+            <groupId>autoFrameX</groupId>
+            <artifactId>autoframex-performance</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+
+        <!--
             cucumber-java/cucumber-testng (TestNGRunner extends the raw
             AbstractTestNGCucumberTests, not autoFrameX's own CucumberProjectBase)
             used to come transitively from the old single autoFrameX artifact.

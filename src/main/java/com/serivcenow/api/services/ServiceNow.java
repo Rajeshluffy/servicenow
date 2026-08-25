@@ -14,6 +14,16 @@ public class ServiceNow {
 	protected RestAssuredBase restAssured = new RestAssuredBase();
 	protected RequestSpecBuilder requestBuilder;
 
+	/**
+	 * Exposes the response from the most recent call for callers outside this
+	 * class hierarchy — e.g. {@code com.framework.performance.ApiPerformanceUtils}'s
+	 * {@code Supplier<ResponseAPI>} contract, which the fluent {@code IncidentSerivce}
+	 * methods (returning {@code this}) can't satisfy directly.
+	 */
+	public ResponseAPI getResponse() {
+		return response;
+	}
+
 	public String serviceNowBaseUri() {
 		return ConfigurationManager.configuration().getBaseUri();
 	}
